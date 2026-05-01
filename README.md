@@ -14,6 +14,7 @@ This skill transforms Claude Code into a **rigorous biomedical statistician** ca
 - Journal-grade statistical methodology selection and justification
 - Reviewer-aware reporting compliant with **STROBE**, **CONSORT**, **STARD**, and **TRIPOD** guidelines
 - Interactive method selection with statistical peer-review feedback
+- **R and Python bilingual** — choose your preferred language
 
 ## Core Capabilities
 
@@ -50,9 +51,12 @@ Or simply describe your data and analysis needs — the skill auto-triggers on k
 
 ## Dependencies
 
-- **R** ≥ 4.0 with packages: `tableone`, `rms`, `Hmisc`, `ggplot2`, `dplyr`, `tidyr`, `haven`, `readxl`, `survival`, `survminer`, `splines`, `mice`, `MatchIt`, `mediation`, `PROC`, `rms`
-- **R environment**: `D:\software\R-4.5.2\bin\Rscript.exe`
-- **Python**: `D:\software\Python314\python.exe`
+**Both R and Python are supported.** The skill asks which language you prefer if not specified.
+
+- **R** ≥ 4.0 (default): `tableone`, `rms`, `Hmisc`, `ggplot2`, `dplyr`, `survival`, `mice`, `MatchIt`, `mediation`
+  - `D:\software\R-4.5.2\bin\Rscript.exe`
+- **Python**: `pandas`, `numpy`, `scipy`, `statsmodels`, `lifelines`, `scikit-learn`, `matplotlib`, `seaborn`, `pingouin`, `patsy`
+  - `D:\software\Python314\python.exe`
 
 ## File Structure
 

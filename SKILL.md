@@ -1,13 +1,14 @@
 ---
 name: medical-statistics
 description: |
-  Biostatistics and clinical data analysis expert. Triggers when:
+  Biostatistics and clinical data analysis expert. Supports both R and Python. Triggers when:
   - User uploads CSV/Excel/SAS/SPSS clinical data for statistical analysis
   - User requests: "Table 1", "multivariable analysis", "regression", "survival analysis", "RCS"
   - User asks: "analyze my data", "run statistics", "help with medical stats", "biostatistics"
   - User needs: normality test, ROC curve, propensity score matching, mediation analysis
   - Data cleaning, missing data imputation, outlier detection needed
   - User mentions: "STROBE", "CONSORT", "journal review", "statistical review", "sample size"
+  - User says "use Python", "use R", "Python code", "R code"
   - Any clinical research, epidemiology, or biomedical data analysis task
 context: fork
 model: sonnet
@@ -46,6 +47,28 @@ Before any analysis, establish the study design — this determines EVERY subseq
 
 > **Lancet/NEJM note**: For observational studies, explicitly assess **confounding, selection bias, and measurement bias**. Apply **E-value** analysis for unmeasured confounding.
 
+### Phase: Language Selection
+
+Before any analysis, establish the user's language preference:
+
+- If user explicitly says **"use R"** or **"use Python"** → follow that instruction
+- If user mentions a specific package (e.g., `tidyverse`, `pandas`, `lifelines`) → use the corresponding language
+- If neither is specified → **ASK**: *"Would you like to use R or Python for this analysis?"*
+
+**R** (default if unsure):
+  ```
+  Rscript D:/software/R-4.5.2/bin/Rscript.exe scripts/xxx.R
+  ```
+  Packages: tableone, rms, survival, ggplot2, dplyr, Hmisc, mice, MatchIt, mediation
+
+**Python**:
+  ```
+  python D:/software/Python314/python.exe scripts/xxx.py
+  ```
+  Packages: pandas, numpy, scipy, statsmodels, lifelines, scikit-learn, matplotlib, seaborn, pingouin
+
+> If the selected language's scripts don't exist yet for a specific analysis, generate the code inline and save it for reproducibility.
+
 ### Phase 1: Data Import & Quality Control
 
 1. **Import data**: Support CSV, Excel (.xlsx/.xls), SAS (.sas7bdat), SPSS (.sav), Stata (.dta), RDS
@@ -76,16 +99,38 @@ Before any analysis, establish the study design — this determines EVERY subseq
 For every continuous variable:
 
 ```r
-# Quantitative: Shapiro-Wilk (n < 5000) or Kolmogorov-Smirnov (n ≥ 5000)
+# R: Shapiro-Wilk (n < 5000) or Kolmogorov-Smirnov (n ≥ 5000)
 shapiro.test(x)
 ks.test(x, "pnorm", mean(x), sd(x))
 
-# Visual: histogram + density curve, Q-Q plot
+# R: histogram + density curve, Q-Q plot
 hist(x, probability = TRUE); lines(density(x))
 qqnorm(x); qqline(x)
 
-# Skewness & Kurtosis (should be between -2 and +2)
+# R: Skewness & Kurtosis (should be between -2 and +2)
 library(moments); skewness(x); kurtosis(x)
+```
+
+```python
+# Python equivalent:
+import numpy as np, pandas as pd, scipy.stats as stats, pingouin as pg
+
+# Quantitative: Shapiro-Wilk (n < 5000)
+w, p = stats.shapiro(x)
+
+# or D'Agostino-Pearson (omnibus normality test)
+stat, p = stats.normaltest(x)
+
+# Visual: histogram + density, Q-Q plot
+import matplotlib.pyplot as plt
+fig, axes = plt.subplots(1, 2)
+axes[0].hist(x, density=True); x_plot = np.linspace(x.min(), x.max(), 100)
+axes[0].plot(x_plot, stats.norm.pdf(x_plot, x.mean(), x.std()))
+stats.probplot(x, plot=axes[1])
+
+# Skewness & Kurtosis
+skew = stats.skew(x); kurt = stats.kurtosis(x, fisher=True)
+```
 ```
 
 **Decision rule** (recommend to user):
@@ -169,9 +214,19 @@ Generate a publication-grade baseline characteristics table:
 
 2. **Fit model** with selected covariates:
    ```r
-   # Logistic example
+   # R: Logistic example
    model <- glm(outcome ~ exposure + age + sex + bmi + smoking,
                 family = binomial(), data = df)
+   ```
+
+   ```python
+   # Python: Logistic example
+   import statsmodels.formula.api as smf
+   model = smf.logit("outcome ~ exposure + age + sex + bmi + smoking",
+                     data=df).fit()
+   print(model.summary())
+   OR = np.exp(model.params)
+   CI = np.exp(model.conf_int())
    ```
 
 3. **Check model diagnostics**:
@@ -197,10 +252,30 @@ Generate a publication-grade baseline characteristics table:
 Explore continuous variable—outcome relationships without assuming linearity:
 
 ```r
+# R: Restricted cubic splines with rms package
 library(rms)
 dd <- datadist(df); options(datadist = "dd")
 model_rcs <- lrm(outcome ~ rcs(age, 4) + sex + bmi, data = df)
 anova(model_rcs)  # Overall + Nonlinear P-values
+```
+
+```python
+# Python: Restricted cubic splines via patsy + statsmodels
+import patsy, statsmodels.api as sm
+from patsy import dmatrix
+
+# Generate RCS basis (4 knots)
+knots = np.percentile(df["age"], [5, 35, 65, 95])
+rcs_basis = dmatrix("cr(age, knots=" + str(list(knots)) + ") + sex + bmi",
+                    {"age": df["age"], "sex": df["sex"], "bmi": df["bmi"]})
+model = sm.GLM(df["outcome"], rcs_basis, family=sm.families.Binomial()).fit()
+
+# Non-linearity test: compare linear vs. spline model
+linear_model = sm.GLM(df["outcome"],
+    dmatrix("age + sex + bmi", df), family=sm.families.Binomial()).fit()
+lr_stat = model.deviance - linear_model.deviance
+lr_p = 1 - stats.chi2.cdf(lr_stat, 4 - 1)
+print(f"Non-linearity P = {lr_p:.4f}")
 ```
 
 **Reporting:**
@@ -238,11 +313,25 @@ A robust analysis must demonstrate that results are not driven by methodological
 ### Propensity Score Methods (Observational Studies)
 
 ```r
-library(MatchIt); library(tableone)
-# 1:1 PSM with caliper
+# R: 1:1 PSM with caliper
+library(MatchIt)
 m <- matchit(treatment ~ age + sex + bmi + smoking,
              data = df, method = "nearest", caliper = 0.2)
 matched <- match.data(m)
+```
+
+```python
+# Python: 1:1 PSM with caliper
+from causalinference import CausalModel
+cm = CausalModel(df["outcome"], df["treatment"],
+                 df[["age", "sex", "bmi", "smoking"]])
+cm.est_via_matching(weights="propensity", matches=1, caliper=0.2)
+
+# or using sklearn + matching
+from sklearn.linear_model import LogisticRegression
+ps_model = LogisticRegression()
+ps_model.fit(df[["age", "sex", "bmi", "smoking"]], df["treatment"])
+df["propensity"] = ps_model.predict_proba(df[["age", "sex", "bmi", "smoking"]])[:, 1]
 ```
 
 **Reporting checklist:**
@@ -410,3 +499,27 @@ When recommending a method, cite the authoritative source:
 - **Missing data**: van Buuren S. *Flexible Imputation of Missing Data*, 2nd ed. CRC, 2018.
 - **Medical statistics**: Altman DG. *Statistics with Confidence*, 2nd ed. BMJ Books, 2000.
 - **Diagnostic studies**: Zhou XH, Obuchowski NA, McClish DK. *Statistical Methods in Diagnostic Medicine*, 2nd ed. Wiley, 2011.
+
+---
+
+## Environment & Dependencies
+
+### R (default)
+```
+Rscript: D:\software\R-4.5.2\bin\Rscript.exe
+Packages: tableone, rms, Hmisc, ggplot2, dplyr, tidyr, haven, readxl,
+          survival, survminer, splines, mice, MatchIt, mediation, PROC, lme4
+```
+
+### Python
+```
+Python: D:\software\Python314\python.exe
+Packages: pandas, numpy, scipy, statsmodels, lifelines, scikit-learn,
+          matplotlib, seaborn, pingouin, patsy, pyreadstat, causalinference
+```
+
+### When generating code
+
+If the user chooses **R**: Use the pre-built scripts in `scripts/` directory when possible; generate inline R code for methods without pre-built scripts.
+
+If the user chooses **Python**: Generate Python code inline using the packages listed above; save generated `.py` files to `scripts/` for reproducibility.
