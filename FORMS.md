@@ -1,100 +1,194 @@
-# 医学统计交互模板
+# Interaction Templates — Method Selection & Review
 
-## 1. 方法推荐对话模板
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  统计方法推荐
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-变量: {变量名称}
-类型: {连续/分类}
-正态性: {正态/非正态/待检验}
-
-推荐方法: {推荐的方法}
-理由:
-1. {理由1}
-2. {理由2}
-3. {理由3}
-
-是否采用此方法？
-[1] 同意
-[2] 自定义方法
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-## 2. 自定义方法评估模板
+## 1. Method Recommendation Template
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  自定义方法评估
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+══════════════════════════════════════════════════
+  Statistical Method Recommendation
+══════════════════════════════════════════════════
 
-用户选择方法: {方法名称}
-评估结果: {✅ 合适 / ⚠ 需注意 / ❌ 不合适}
+Variable: {variable_name}
+Type: {continuous / categorical / ordinal}
+Distribution: {normal / non-normal / pending test}
+Comparison: {two-group / multi-group / paired}
 
-{评估说明}
-{替代方案/建议}
+Recommended Method: {recommended_method}
+Rationale:
+  1. {rationale_1}
+  2. {rationale_2}
+  3. {rationale_3}
 
-选项:
-[1] 采用建议方法 {自动选择的最佳方法}
-[2] 坚持使用自定义方法（结果将备注"用户指定"）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Alternatives Considered:
+  - {alternative_1}: {reason_not_chosen}
+  - {alternative_2}: {reason_not_chosen}
+
+Do you agree with this recommendation?
+  [1] Yes — proceed with recommended method
+  [2] No — I have a custom method in mind
+══════════════════════════════════════════════════
 ```
 
-## 3. 模型结果报告模板
+## 2. Custom Method Evaluation Template
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  {分析类型} 结果
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+══════════════════════════════════════════════════
+  Custom Method Evaluation
+══════════════════════════════════════════════════
 
-变量 | 效应值(95%CI) | P值 | 显著性
------|---------------|------|-------
-{var1} | {value} | {p} | {sig}
-{var2} | {value} | {p} | {sig}
+User's Chosen Method: {custom_method}
+Assessment: {✅ Appropriate / ⚠ Needs Caution / ❌ Inappropriate}
 
-模型诊断:
-- 拟合优度: {test} P = {p}
-- AUC/C-index: {value}
-- 共线性检查: {VIF情况}
+Detailed Assessment:
+  {assessment_details}
 
-══════════════════════════════════════
+Recommended Alternative: {suggested_method}
+Reason: {reason_suggestion_is_better}
+
+Options:
+  [1] Accept recommended method — {suggested_method}
+  [2] Insist on custom method — results will be annotated:
+      "[Method specified by user — not validated for this context]"
+══════════════════════════════════════════════════
 ```
 
-## 4. 完整报告模板
+## 3. Model Results Report Template
 
 ```
-# 统计分析报告
+══════════════════════════════════════════════════
+  {Model_Type} Results
+══════════════════════════════════════════════════
 
-## 1. 数据概况
-- 样本量: N = {n}
-- 变量数: {k}
+ Variable         │ Effect (95% CI)      │ P-value    │
+──────────────────┼──────────────────────┼────────────
+ {var1}           │ {effect} ({ci_low}–{ci_high}) │ {p}   {sig}
+ {var2}           │ {effect} ({ci_low}–{ci_high}) │ {p}   {sig}
+ {var3}           │ {effect} ({ci_low}–{ci_high}) │ {p}   {sig}
 
-## 2. 正态性检验
-{表}
+───────────────────────────────────────────────────────
+Model Performance:
+  • Discrimination: C-statistic / AUC = {value} (95% CI: {ci})
+  • Calibration: {test_name} P = {p}
+  • Multicollinearity: max VIF = {max_vif}
+  • Events per variable (EPV) = {epv}  [{status}]
 
-## 3. 统计方法说明
-- 连续变量: 正态→Mean±SD/t检验; 非正态→Median(Q1,Q3)/非参数检验
-- 分类变量: n(%)/χ²检验
-- 多因素分析: {Logistic/Cox/线性}回归
-- 非线性分析: 限制性立方样条 (k={n}个节点)
+───────────────────────────────────────────────────────
+```
 
-## 4. 用户交互记录
-- {方法1}: 推荐{t检验} → 用户{同意/自定义}
-- {方法2}: 推荐{非参数检验} → 用户{同意}
+## 4. Comprehensive Report Template
 
-## 5. Table 1 基线特征
-{表}
+```
+# Statistical Analysis Report
 
-## 6. 多因素分析结果
-{表}
+## Study Design
+- Design: {RCT / Cohort / Case-Control / Cross-sectional}
+- Primary objective: {objective}
+- Sample size: N = {n_total}
 
-## 7. RCS 分析结果
-- 非线性检验 P = {value}
-- RCS图：{path}
+## Data Quality
+- Complete cases: {n_complete} ({pct_complete}%)
+- Missing data method: {method}
+- Outliers detected: {n_outliers}
+
+## Methods
+- Continuous variables: Normal → Mean±SD / parametric; Non-normal → Median(IQR) / non-parametric
+- Categorical variables: n(%) / χ²-test or Fisher's exact
+- Multivariable method: {model_type} adjusted for {covariates}
+- Non-linear analysis: Restricted cubic splines ({k} knots)
+- Sensitivity analyses: {list_sensitivity_methods}
+
+## User Interaction Log
+- {method_1}: Recommended {recommended} → User {agreed / specified custom: {custom}}
+- {method_2}: Recommended {recommended} → User {agreed / specified custom: {custom}}
+- {method_3}: Recommended {recommended} → User {agreed / specified custom: {custom}}
+
+## Key Results
+[Summary tables and figures]
+
+## Journal Reviewer Assessment
+{reviewer_comments}
+
+## Limitations
+{limitations}
 
 ---
-生成时间：{time}
-工具：Claude Code medical-statistics skill
+Generated: {timestamp}
+Tool: Claude Code — medical-statistics skill
+Reviewer Standard: {Lancet / BMJ / NEJM / JAMA} statistical review criteria
+```
+
+## 5. Journal Statistical Review Template
+
+```
+══════════════════════════════════════════════════
+  Journal Statistical Review
+══════════════════════════════════════════════════
+
+Manuscript: {title}
+
+┌─────────────────────────────────────────────────────┐
+│ Domain               │ Rating │ Comments            │
+├─────────────────────────────────────────────────────┤
+│ Study Design         │ {1-5}  │ {comment}           │
+│ Sample Size / Power  │ {1-5}  │ {comment}           │
+│ Handling of Missing  │ {1-5}  │ {comment}           │
+│ Confounding Control  │ {1-5}  │ {comment}           │
+│ Model Assumptions    │ {1-5}  │ {comment}           │
+│ Subgroup Analysis    │ {1-5}  │ {comment}           │
+│ Multiple Testing     │ {1-5}  │ {comment}           │
+│ Reporting Quality    │ {1-5}  │ {comment}           │
+│ Figures & Tables     │ {1-5}  │ {comment}           │
+│ Interpretation       │ {1-5}  │ {comment}           │
+└─────────────────────────────────────────────────────┘
+
+Overall Assessment: {accept / minor / major / reject}
+Critical Issues: {count}
+Major Issues: {count}
+Minor Issues: {count}
+
+Recommendation: {recommendation}
+══════════════════════════════════════════════════
+```
+
+## 6. Missing Data Report Template
+
+```
+══════════════════════════════════════════════════
+  Missing Data Assessment
+══════════════════════════════════════════════════
+
+Variable          │ N Missing │ % Missing │ Pattern
+──────────────────┼───────────┼───────────┼─────────
+{variable_1}      │ {n}       │ {pct}%    │ {pattern}
+{variable_2}      │ {n}       │ {pct}%    │ {pattern}
+
+Likely Mechanism: {MCAR / MAR / MNAR}
+Recommended Approach: {approach}
+
+Options:
+  [1] Complete-case analysis (if missing < 5% AND MCAR)
+  [2] Multiple imputation (if MAR)
+  [3] User has alternative approach
+══════════════════════════════════════════════════
+```
+
+## 7. E-value Report Template
+
+```
+══════════════════════════════════════════════════
+  E-value Sensitivity Analysis
+══════════════════════════════════════════════════
+
+Observed Effect: {OR/HR} = {value} (95% CI: {ci_low}–{ci_high})
+
+E-value for point estimate: {e_value_est}
+  Interpretation: An unmeasured confounder would need a risk ratio
+  of ≥ {e_value_est} with BOTH exposure and outcome to explain away
+  the observed effect estimate.
+
+E-value for CI limit: {e_value_ci}
+  Interpretation: An unmeasured confounder would need a risk ratio
+  of ≥ {e_value_ci} to shift the CI to include the null.
+
+Robustness: {robust / moderate / fragile}
+══════════════════════════════════════════════════
 ```
