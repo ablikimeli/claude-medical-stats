@@ -66,10 +66,11 @@ medical-statistics/
 ├── FORMS.md                          # Interaction templates
 ├── README.md                         # This file
 ├── scripts/
-│   ├── normality_test.R              # Normality assessment
-│   ├── table_one.R                   # Baseline characteristics
-│   ├── multivariate_analysis.R       # Regression models
-│   └── rcs_analysis.R                # Restricted cubic splines
+│   ├── normality_test.{R,py}         # Normality assessment
+│   ├── table_one.{R,py}              # Baseline characteristics
+│   ├── multivariate_analysis.{R,py}  # Regression models
+│   ├── rcs_analysis.{R,py}           # Restricted cubic splines
+│   └── utils.{R,py}                  # Utility functions
 ├── references/
 │   ├── statistical_methods_reference.md  # Comprehensive method guide
 │   └── rcs_guide.md                     # RCS deep reference
@@ -119,6 +120,7 @@ This skill enforces key elements from:
 - **符合 STROBE/CONSORT/STARD/TRIPOD 报告规范**
 - **交互式方法选择**：推荐方法 → 用户确认 → 自定义方法评估
 - **统计审稿检查清单**：从审稿人角度检查分析质量
+- **R 和 Python 双语支持**：未指定时自动询问用户偏好
 
 ### 支持的方法
 
@@ -137,6 +139,32 @@ This skill enforces key elements from:
 
 ```bash
 git clone https://github.com/ablikimeli/claude-medical-stats.git ~/.claude/skills/medical-statistics
+```
+
+### 语言选择
+
+- 明确说 **"use R"** 或 **"用 R"** → 走 R 脚本
+- 明确说 **"use Python"** 或 **"用 Python"** → 走 Python 脚本
+- **未指定** → 自动询问：*"Would you like to use R or Python?"*
+
+### 文件结构
+
+```text
+medical-statistics/
+├── SKILL.md                          # 技能定义与工作流
+├── FORMS.md                          # 交互模板
+├── README.md                         # 本文件
+├── scripts/
+│   ├── normality_test.{R,py}         # 正态性检验
+│   ├── table_one.{R,py}              # 基线特征表
+│   ├── multivariate_analysis.{R,py}  # 多因素回归
+│   ├── rcs_analysis.{R,py}           # 限制性立方样条
+│   └── utils.{R,py}                  # 工具函数
+├── references/
+│   ├── statistical_methods_reference.md  # 统计方法手册
+│   └── rcs_guide.md                     # RCS 深度参考
+└── evals/
+    └── evals.json                    # 测试用例
 ```
 
 ### 统计分析流程
