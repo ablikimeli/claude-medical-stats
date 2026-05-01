@@ -344,9 +344,28 @@ df["propensity"] = ps_model.predict_proba(df[["age", "sex", "bmi", "smoking"]])[
 Decompose total effect into **direct** and **indirect** effects:
 
 ```r
+# R: Mediation analysis
 library(mediation)
 med <- mediate(model_m, model_y, treat = "treatment", mediator = "biomarker")
 summary(med)  # ACME, ADE, proportion mediated
+```
+
+```python
+# Python: Mediation analysis
+import statsmodels.api as sm
+from statsmodels.stats.mediation import Mediation
+
+# Mediator model: mediator ~ treatment + covariates
+med_model = sm.OLS(df["mediator"], sm.add_constant(df[["treatment", "age", "sex"]])).fit()
+# Outcome model: outcome ~ treatment + mediator + covariates
+out_model = sm.Logit(df["outcome"], sm.add_constant(df[["treatment", "mediator", "age", "sex"]])).fit()
+
+# Mediation
+med = Mediation(out_model, med_model, "treatment", "mediator").fit(method="parametric")
+med.summary()
+print(f"ACME = {med.summary()['ACME (average)']:.4f}")
+print(f"ADE = {med.summary()['ADE (average)']:.4f}")
+print(f"Proportion Mediated = {med.summary()['Prop. Mediated (average)']:.4f}")
 ```
 
 **NEJM/BMJ standard**:
@@ -367,9 +386,26 @@ For time-to-event data with multiple possible outcomes:
 **JAMA rule**: Specify subgroups a priori. Avoid post-hoc subgroup fishing.
 
 ```r
-# Test interaction
+# R: Test interaction
 model_int <- glm(outcome ~ treatment * subgroup, family = binomial(), data = df)
 anova(model_int, test = "Chisq")  # Interaction P-value
+```
+
+```python
+# Python: Test interaction
+import statsmodels.api as sm
+model = sm.Logit(df["outcome"], sm.add_constant(
+    pd.get_dummies(df[["treatment", "subgroup"]], drop_first=True))
+).fit()
+# With interaction term
+df["tx_subgroup"] = df["treatment"] * df["subgroup"]
+model_int = sm.Logit(df["outcome"], sm.add_constant(
+    pd.get_dummies(df[["treatment", "subgroup"]], drop_first=True)
+    .assign(tx_subgroup=df["tx_subgroup"]))
+).fit()
+lr_stat = -2 * (model.llf - model_int.llf)
+lr_p = 1 - stats.chi2.cdf(lr_stat, 1)
+print(f"Interaction P = {lr_p:.4f}")
 ```
 
 - Report interaction P-value, NOT within-subgroup effects alone
@@ -398,10 +434,28 @@ anova(model_int, test = "Chisq")  # Interaction P-value
 When requested, perform power/sample size calculations:
 
 ```r
-# Two-sample t-test
+# R: Two-sample t-test power
 power.t.test(delta = 0.5, sd = 1, power = 0.8, sig.level = 0.05)
-# Logistic regression
+# R: Logistic regression power
 library(powerlog); powerlog(base.rate = 0.2, or = 1.5, n = 500, alpha = 0.05)
+```
+
+```python
+# Python: Two-sample t-test power
+from statsmodels.stats.power import TTestIndPower, tt_ind_solve_power
+n = tt_ind_solve_power(effect_size=0.5, power=0.8, alpha=0.05)
+print(f"Required n per group = {n:.0f}")
+
+# Python: Proportion / logistic-like power
+from statsmodels.stats.power import zt_ind_solve_power
+# Approximate via z-test for proportions
+n = zt_ind_solve_power(effect_size=0.2, power=0.8, alpha=0.05)
+print(f"Required n per group = {n:.0f}")
+
+# Python: Survival power
+# Using lifelines
+from lifelines.statistics import logrank_power
+n = logrank_power(hr=1.5, alpha=0.05, power=0.8)
 ```
 
 **Key reporting elements** (CONSORT):
