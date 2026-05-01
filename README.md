@@ -77,17 +77,17 @@ medical-statistics/
 
 ```mermaid
 graph TD
-    A[Data Upload] --> B[Data Exploration & Quality Check]
-    B --> C[Missing Data Assessment]
+    A[Data Upload] --> B[Explore & QC]
+    B --> C[Missing Data]
     C --> D{Normality Test}
-    D --> E[Method Selection<br/>Interactive with User]
-    E --> F[Table 1:<br/>Baseline Characteristics]
-    F --> G[Univariable Screening]
-    G --> H[Multivariable Modeling]
+    D --> E[Method Selection]
+    E --> F[Table 1]
+    F --> G[Univariable Screen]
+    G --> H[Multivariable Model]
     H --> I[Model Diagnostics]
-    I --> J[Non-linear Analysis<br/>RCS / Smooth Curves]
+    I --> J[RCS / Non-linear]
     J --> K[Sensitivity Analysis]
-    K --> L[Journal-Ready Report]
+    K --> L[Final Report]
     L --> M[Reviewer Checklist]
 ```
 
@@ -133,6 +133,24 @@ This skill enforces key elements from:
 
 ```bash
 git clone https://github.com/ablikimeli/claude-medical-stats.git ~/.claude/skills/medical-statistics
+```
+
+### 统计分析流程
+
+```mermaid
+graph TD
+    A[数据上传] --> B[探索与质控]
+    B --> C[缺失值评估]
+    C --> D{正态性检验}
+    D --> E[方法选择]
+    E --> F[Table 1]
+    F --> G[单因素筛选]
+    G --> H[多因素建模]
+    H --> I[模型诊断]
+    I --> J[RCS 分析]
+    J --> K[敏感性分析]
+    K --> L[生成报告]
+    L --> M[审稿检查]
 ```
 
 ### 使用
