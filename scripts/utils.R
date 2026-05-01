@@ -130,7 +130,8 @@ select_multigroup_test <- function(x, group) {
 #' 检查并安装必需包
 required_packages <- c("tableone", "rms", "Hmisc", "ggplot2",
                        "dplyr", "tidyr", "foreign", "haven",
-                       "readxl", "survival", "survminer", "splines")
+                       "readxl", "survival", "survminer", "splines",
+                       "openxlsx", "officer", "flextable")
 
 ensure_packages(required_packages)
 cat("✔ 所有必需包已就绪\n")

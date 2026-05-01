@@ -119,6 +119,13 @@ def main():
     for r in results:
         print(f"  {r['variable']}: {r['recommended_method']}")
 
+    # Export results
+    from export_utils import export_to_excel, timestamp
+    ts = timestamp()
+    export_df = pd.DataFrame(results)
+    export_to_excel(export_df, f"normality_{ts}.xlsx",
+                    sheet_name="Normality", title="Normality Assessment Results")
+
     print("\n" + "=" * 55)
 
 

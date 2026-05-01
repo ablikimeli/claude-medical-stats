@@ -167,6 +167,38 @@ def main():
     else:
         print("\nNo variables with P < 0.1")
 
+    # --- Export results ---
+    from export_utils import export_to_excel, export_to_word, timestamp
+    ts = timestamp()
+
+    rows = []
+    for var in cont_vars:
+        desc, dist, _ = format_continuous(df[var])
+        if len(groups) == 2:
+            _, p_val = compare_two_groups(df[var], df[args.outcome], dist == "normal")
+        else:
+            if dist == "normal":
+                _, p_val = stats.f_oneway(*[df[df[args.outcome] == g][var].dropna() for g in groups])
+            else:
+                _, p_val = stats.kruskal(*[df[df[args.outcome] == g][var].dropna() for g in groups])
+        p_str = round(p_val, 4) if not np.isnan(p_val) else "N/A"
+        rows.append({"Variable": var, "Type": "Continuous", "Distribution": dist, "Description": desc, "P_value": p_str})
+
+    for var in cat_vars:
+        p_val = float("nan")
+        ct = pd.crosstab(df[var], df[args.outcome])
+        if ct.size > 0:
+            if (ct < 5).any().any() and ct.shape == (2, 2):
+                _, p_val = stats.fisher_exact(ct)
+            else:
+                chi2, p_val, _, _ = stats.chi2_contingency(ct)
+        p_str = round(p_val, 4) if not np.isnan(p_val) else "N/A"
+        rows.append({"Variable": var, "Type": "Categorical", "Distribution": "-", "Description": "n (%)", "P_value": p_str})
+
+    result_df = pd.DataFrame(rows)
+    export_to_excel(result_df, f"table1_{ts}.xlsx", title="Table 1: Baseline Characteristics")
+    export_to_word(result_df, f"table1_{ts}.docx", title="Table 1: Baseline Characteristics")
+
     print("=" * 65)
 
 

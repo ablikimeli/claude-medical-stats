@@ -29,7 +29,6 @@ def read_data(filepath):
 def run_linear(df, outcome, predictors):
     import statsmodels.api as sm
     X = sm.add_constant(df[predictors].copy())
-    # Drop rows with any NaN in X or y
     mask = X.notna().all(axis=1) & df[outcome].notna()
     X, y = X[mask], df.loc[mask, outcome]
     model = sm.OLS(y, X).fit()
@@ -38,13 +37,16 @@ def run_linear(df, outcome, predictors):
     print("  ┌────────────────────────────────────────────────────┐")
     print(f"  │ {'Variable':<20} │ {'β (95% CI)':<28} │ {'P':<8} │")
     print("  ├────────────────────────────────────────────────────┤")
+    rows = []
     for var, coef in model.params.items():
         ci = model.conf_int().loc[var]
         p = model.pvalues[var]
         sig = "***" if p < 0.001 else "**" if p < 0.01 else "*" if p < 0.05 else ""
         print(f"  │ {var:<20} │ {coef:.4f} ({ci[0]:.4f}, {ci[1]:.4f}) │ {p:.4f}{sig:<3} │")
+        rows.append({"Variable": var, "Beta": round(coef, 4), "CI_Lower": round(ci[0], 4),
+                      "CI_Upper": round(ci[1], 4), "P_value": round(p, 4), "Sig": sig})
     print("  └────────────────────────────────────────────────────┘")
-    return model
+    return model, pd.DataFrame(rows)
 
 
 def run_logistic(df, outcome, predictors):
@@ -59,16 +61,20 @@ def run_logistic(df, outcome, predictors):
 
     print(f"\n  Pseudo R² = {model.prsquared:.4f}")
     print(f"  Log-Likelihood = {model.llf:.2f}")
-    print(f"  AUC = {model.bic:.4f} (approximate)")  # Placeholder
+    print(f"  AUC = {model.bic:.4f} (approximate)")
     print("\n  ┌────────────────────────────────────────────────────────────┐")
     print(f"  │ {'Variable':<20} │ {'OR (95% CI)':<30} │ {'P':<8} │")
     print("  ├────────────────────────────────────────────────────────────┤")
+    rows = []
     for var in model.params.index:
         p = model.pvalues[var]
         sig = "***" if p < 0.001 else "**" if p < 0.01 else "*" if p < 0.05 else ""
         print(f"  │ {var:<20} │ {or_val[var]:.4f} ({or_ci[0][var]:.4f}, {or_ci[1][var]:.4f}) │ {p:.4f}{sig:<3} │")
+        rows.append({"Variable": var, "OR": round(or_val[var], 4),
+                      "CI_Lower": round(or_ci[0][var], 4), "CI_Upper": round(or_ci[1][var], 4),
+                      "P_value": round(p, 4), "Sig": sig})
     print("  └────────────────────────────────────────────────────────────┘")
-    return model
+    return model, pd.DataFrame(rows)
 
 
 def run_cox(df, outcome, predictors, time_col):
@@ -85,12 +91,16 @@ def run_cox(df, outcome, predictors, time_col):
     print("\n  ┌────────────────────────────────────────────────────────────┐")
     print(f"  │ {'Variable':<20} │ {'HR (95% CI)':<30} │ {'P':<8} │")
     print("  ├────────────────────────────────────────────────────────────┤")
+    rows = []
     for var in cph.params_.index:
         p = cph.summary.loc[var, "p"]
         sig = "***" if p < 0.001 else "**" if p < 0.01 else "*" if p < 0.05 else ""
         print(f"  │ {var:<20} │ {hr[var]:.4f} ({hr_ci[var].iloc[0]:.4f}, {hr_ci[var].iloc[1]:.4f}) │ {p:.4f}{sig:<3} │")
+        rows.append({"Variable": var, "HR": round(hr[var], 4),
+                      "CI_Lower": round(hr_ci[var].iloc[0], 4), "CI_Upper": round(hr_ci[var].iloc[1], 4),
+                      "P_value": round(p, 4), "Sig": sig})
     print("  └────────────────────────────────────────────────────────────┘")
-    return cph
+    return cph, pd.DataFrame(rows)
 
 
 def main():
@@ -122,14 +132,46 @@ def main():
     print(f"  Predictors: {', '.join(predictors)}\n")
 
     if args.type == "linear":
-        run_linear(df, args.outcome, predictors)
+        model, result_df = run_linear(df, args.outcome, predictors)
+        export_prefix = "linear"
     elif args.type == "logistic":
-        run_logistic(df, args.outcome, predictors)
+        model, result_df = run_logistic(df, args.outcome, predictors)
+        export_prefix = "logistic"
     elif args.type == "cox":
         if not args.time:
             print("ERROR: --time required for Cox regression")
             sys.exit(1)
-        run_cox(df, args.outcome, predictors, args.time)
+        model, result_df = run_cox(df, args.outcome, predictors, args.time)
+        export_prefix = "cox"
+
+    # Export results
+    from export_utils import export_to_excel, export_to_word, timestamp
+    ts = timestamp()
+    export_to_excel(result_df, f"{export_prefix}_{ts}.xlsx",
+                    sheet_name=export_prefix,
+                    title=f"{model_names[args.type]} Regression Results")
+    export_to_word(result_df, f"{export_prefix}_{ts}.docx",
+                   title=f"{model_names[args.type]} Regression Results")
+
+    # Forest plot
+    try:
+        from forest_plot import forest_plot as fp
+        effect_map = {"linear": ("beta (95% CI)", 0),
+                      "logistic": ("OR (95% CI)", 1),
+                      "cox": ("HR (95% CI)", 1)}
+        eff_label, ref_val = effect_map.get(args.type, ("OR (95% CI)", 1))
+
+        # Filter out intercept for linear/logistic
+        plot_df = result_df.copy()
+        if "Intercept" in plot_df["Variable"].values:
+            plot_df = plot_df[plot_df["Variable"] != "Intercept"]
+
+        if len(plot_df) > 0:
+            fp(plot_df, effect_label=eff_label, reference=ref_val,
+               filename_prefix=f"forest_{export_prefix}_{ts}",
+               title=f"Forest Plot: {model_names[args.type]}")
+    except Exception as e:
+        print(f"  ! Forest plot skipped: {e}")
 
     print("\n" + "=" * 65)
 

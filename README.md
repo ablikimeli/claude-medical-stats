@@ -23,6 +23,7 @@ This skill transforms Claude Code into a **rigorous biomedical statistician** ca
 | Descriptive | Normality tests, Table 1 (baseline characteristics), standardized mean differences |
 | Univariable | t-test, Wilcoxon, ANOVA, Kruskal-Wallis, χ², Fisher's exact, McNemar |
 | Multivariable | Linear / Logistic / Cox / Ordinal / Multinomial / Poisson regression |
+| **Visualization** | **Forest plot (`forestplot`包, OR/HR/β+95%CI+P值), RCS平滑曲线 (`rcssci`包)** |
 | Non-linear | Restricted Cubic Splines (RCS), smooth curves, threshold effect analysis |
 | Survival | Kaplan-Meier, Cox PH, competing risks, landmark analysis, time-dependent ROC |
 | Advanced | Propensity score (PSM, IPTW), mediation analysis, DAG-based causal inference |
@@ -53,10 +54,23 @@ Or simply describe your data and analysis needs — the skill auto-triggers on k
 
 **Both R and Python are supported.** The skill asks which language you prefer if not specified.
 
-- **R** ≥ 4.0 (default): `tableone`, `rms`, `Hmisc`, `ggplot2`, `dplyr`, `survival`, `mice`, `MatchIt`, `mediation`
+- **R** ≥ 4.0 (default): `tableone`, `rms`, `Hmisc`, `ggplot2`, `dplyr`, `survival`, `mice`, `MatchIt`, `mediation`,
+  `openxlsx`, `officer`, `flextable`
   - `D:\software\R-4.5.2\bin\Rscript.exe`
-- **Python**: `pandas`, `numpy`, `scipy`, `statsmodels`, `lifelines`, `scikit-learn`, `matplotlib`, `seaborn`, `pingouin`, `patsy`
+- **Python**: `pandas`, `numpy`, `scipy`, `statsmodels`, `lifelines`, `scikit-learn`, `matplotlib`, `seaborn`,
+  `pingouin`, `patsy`, `openpyxl`, `python-docx`
   - `D:\software\Python314\python.exe`
+
+## Export Features
+
+All analysis outputs are available in publication-ready formats:
+
+| Format | Tables | Figures |
+|:-------|:-------|:--------|
+| **Excel** (.xlsx) | Table 1, regression results, RCS predictions | — |
+| **Word** (.docx) | Formatted tables ready for manuscript | — |
+| **PNG** (.png, 300 DPI) | — | RCS plots, diagnostic plots |
+| **PDF** (.pdf) | — | Vector figures for publication |
 
 ## File Structure
 
@@ -66,11 +80,12 @@ medical-statistics/
 ├── FORMS.md                          # Interaction templates
 ├── README.md                         # This file
 ├── scripts/
-│   ├── normality_test.{R,py}         # Normality assessment
-│   ├── table_one.{R,py}              # Baseline characteristics
-│   ├── multivariate_analysis.{R,py}  # Regression models
-│   ├── rcs_analysis.{R,py}           # Restricted cubic splines
-│   └── utils.{R,py}                  # Utility functions
+│   ├── normality_test.{R,py}         # Normality assessment + Excel export
+│   ├── table_one.{R,py}              # Baseline characteristics + Word/Excel export
+│   ├── multivariate_analysis.{R,py}  # Regression models + Word/Excel export
+│   ├── rcs_analysis.{R,py}           # Restricted cubic splines + PDF/PNG/Excel export
+│   ├── utils.{R,py}                  # Utility functions
+│   └── export_utils.{R,py}           # Export functions (Word/Excel/PDF/PNG)
 ├── references/
 │   ├── statistical_methods_reference.md  # Comprehensive method guide
 │   └── rcs_guide.md                     # RCS deep reference
@@ -135,6 +150,17 @@ This skill enforces key elements from:
 | 诊断试验 | ROC/AUC、校准曲线、C-statistic、NRI |
 | 敏感性 | E-value、多重插补、亚组分析、交互作用 |
 
+### 输出导出
+
+所有分析结果自动导出为可发表格式：
+
+| 输出类型 | 格式 | 说明 |
+|:---------|:-----|:------|
+| 统计表格 | **Excel** (.xlsx) | Table 1、回归结果、RCS预测数据 |
+| 统计表格 | **Word** (.docx) | 格式化表格，可直接粘贴到论文 |
+| 统计图形 | **PNG** (.png, 300 DPI) | 适合插入文档和PPT |
+| 统计图形 | **PDF** (.pdf) | 矢量格式，适合投稿和印刷 |
+
 ### 安装
 
 ```bash
@@ -155,11 +181,12 @@ medical-statistics/
 ├── FORMS.md                          # 交互模板
 ├── README.md                         # 本文件
 ├── scripts/
-│   ├── normality_test.{R,py}         # 正态性检验
-│   ├── table_one.{R,py}              # 基线特征表
-│   ├── multivariate_analysis.{R,py}  # 多因素回归
-│   ├── rcs_analysis.{R,py}           # 限制性立方样条
-│   └── utils.{R,py}                  # 工具函数
+│   ├── normality_test.{R,py}         # 正态性检验 + Excel导出
+│   ├── table_one.{R,py}              # 基线特征表 + Word/Excel导出
+│   ├── multivariate_analysis.{R,py}  # 多因素回归 + Word/Excel导出
+│   ├── rcs_analysis.{R,py}           # 限制性立方样条 + PDF/PNG/Excel导出
+│   ├── utils.{R,py}                  # 工具函数
+│   └── export_utils.{R,py}           # 导出功能（Word/Excel/PDF/PNG）
 ├── references/
 │   ├── statistical_methods_reference.md  # 统计方法手册
 │   └── rcs_guide.md                     # RCS 深度参考

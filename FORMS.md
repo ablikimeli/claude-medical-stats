@@ -104,6 +104,18 @@ Model Performance:
 ## Key Results
 [Summary tables and figures]
 
+## Exported Files
+- Table 1 (Excel): `table1_{timestamp}.xlsx`
+- Table 1 (Word): `table1_{timestamp}.docx`
+- Multivariable results (Excel): `{model_type}_{timestamp}.xlsx`
+- Multivariable results (Word): `{model_type}_{timestamp}.docx`
+- Forest plot (PNG): `forest_{model_type}_{timestamp}.png`
+- Forest plot (PDF): `forest_{model_type}_{timestamp}.pdf`
+- RCS plot (PNG): `rcs_{variable}_{timestamp}.png`
+- RCS plot (PDF): `rcs_{variable}_{timestamp}.pdf`
+- RCS prediction data (Excel): `rcs_{variable}_data_{timestamp}.xlsx`
+- Normality results (Excel): `normality_{timestamp}.xlsx`
+
 ## Journal Reviewer Assessment
 {reviewer_comments}
 

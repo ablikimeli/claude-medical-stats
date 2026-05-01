@@ -122,4 +122,36 @@ cat("  连续正态: t检验 / ANOVA\n")
 cat("  连续非正态: Wilcoxon秩和检验 / Kruskal-Wallis\n")
 cat("  分类变量: χ²检验 / Fisher精确检验\n")
 
+# ---- Export results to Excel and Word ----
+suppressPackageStartupMessages(library(openxlsx))
+suppressPackageStartupMessages(library(flextable))
+suppressPackageStartupMessages(library(officer))
+
+ts_val <- format(Sys.time(), "%Y%m%d_%H%M%S")
+
+tab1_print <- print(tab1, showAllLevels = TRUE, quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
+tab1_export <- as.data.frame.matrix(tab1_print)
+tab1_export <- cbind(Variable = rownames(tab1_export), tab1_export)
+rownames(tab1_export) <- NULL
+
+excel_file <- paste0("table1_", ts_val, ".xlsx")
+write.xlsx(tab1_export, excel_file, overwrite = TRUE)
+cat(sprintf("\n  ✔ Excel: %s\n", excel_file))
+
+word_file <- paste0("table1_", ts_val, ".docx")
+ft <- flextable(tab1_export) %>%
+  theme_booktabs() %>% autofit() %>%
+  bold(part = "header") %>% align(align = "center", part = "all") %>%
+  font(fontname = "Times New Roman", part = "all") %>% fontsize(size = 9, part = "all")
+doc <- read_docx() %>%
+  body_add_par("Table 1: Baseline Characteristics", style = "heading 1") %>%
+  body_add_flextable(ft)
+print(doc, target = word_file)
+cat(sprintf("  ✔ Word: %s\n", word_file))
+
+pvals <- ExtractPvalue(tab1)
+pval_df <- data.frame(Variable = rownames(pvals), P_value = round(pvals$pvalue, 4), row.names = NULL)
+write.xlsx(pval_df, paste0("table1_pvalues_", ts_val, ".xlsx"), overwrite = TRUE)
+cat(sprintf("  ✔ P-values: table1_pvalues_%s.xlsx\n", ts_val))
+
 cat("\n═══════════════════════════════════════════\n")

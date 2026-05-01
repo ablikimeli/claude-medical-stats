@@ -130,58 +130,98 @@ def main():
     else:
         print(f"  ❌ No significant non-linearity (P ≥ 0.05)")
 
-    # Generate prediction for plot
-    x_range = np.linspace(df[args.continuous].min(), df[args.continuous].max(), 100)
+    # Generate prediction for plot using delta method for CI
+    x_range = np.linspace(df[args.continuous].min(), df[args.continuous].max(), 200)
     rcs_pred = rcs_basis(x_range, knot_locs)
-    pred_df = pd.DataFrame(rcs_pred, columns=[c for c in model.params.index
-                                              if c not in ["const"] + covariates + [args.continuous]])
-    pred_df = sm.add_constant(pred_df)
 
-    # Add covariate means for prediction
+    # Build prediction DataFrame matching model design
+    rcs_cols = [f"{args.continuous}_rcs_{i}" for i in range(rcs_pred.shape[1])]
+    pred_df = pd.DataFrame(rcs_pred, columns=rcs_cols)
+    pred_df = sm.add_constant(pred_df)
+    # Rename to match model param names
+    param_names = model.params.index.tolist()
+    col_map = {}
+    for i, col in enumerate(rcs_cols):
+        col_map[col] = [p for p in param_names if p.startswith(f"{args.continuous}_rcs_")][i] if len([p for p in param_names if p.startswith(f"{args.continuous}_rcs_")]) > i else col
+
+    # Add covariates at fixed values
     for cov in covariates:
         pred_df[cov] = df[cov].mean() if np.issubdtype(df[cov].dtype, np.number) else df[cov].mode()[0]
 
-    # Ensure column alignment
-    pred_df = pred_df[model.params.index]
-    linear_pred = model.predict(pred_df)
-    se_pred = np.sqrt(model.cov_params().values.diagonal().sum())  # Approximate
+    # Ensure column order matches model params
+    for p in param_names:
+        if p not in pred_df.columns:
+            pred_df[p] = 0
+    pred_df = pred_df[param_names]
 
-    # Odds Ratio relative to median
+    # Linear predictor and SE via delta method
+    X_pred = pred_df.values
+    cov_beta = model.cov_params().values
+    linear_pred = X_pred @ model.params.values
+    var_pred = np.diag(X_pred @ cov_beta @ X_pred.T)
+    se_pred = np.sqrt(np.maximum(var_pred, 0))
+
+    # Odds Ratio relative to median reference
     ref_val = df[args.continuous].median()
     ref_rcs = rcs_basis(np.array([ref_val]), knot_locs)
-    ref_df = pd.DataFrame(ref_rcs, columns=[c for c in model.params.index
-                                            if c not in ["const"] + covariates + [args.continuous]])
+    ref_df = pd.DataFrame(ref_rcs, columns=rcs_cols)
     ref_df = sm.add_constant(ref_df)
     for cov in covariates:
         ref_df[cov] = pred_df[cov].iloc[0]
-    ref_df = ref_df[model.params.index]
-    ref_pred = model.predict(ref_df)[0]
+    for p in param_names:
+        if p not in ref_df.columns:
+            ref_df[p] = 0
+    ref_df = ref_df[param_names]
+    ref_linpred = (ref_df.values @ model.params.values)[0]
 
-    or_values = np.exp(linear_pred - ref_pred)
+    or_values = np.exp(linear_pred - ref_linpred)
+    or_lower = np.exp(linear_pred - ref_linpred - 1.96 * se_pred)
+    or_upper = np.exp(linear_pred - ref_linpred + 1.96 * se_pred)
 
-    # Generate RCS plot
-    fig, ax = plt.subplots(figsize=(8, 6))
+    # Build export data
+    export_data = pd.DataFrame({
+        args.continuous: x_range,
+        "OR": or_values,
+        "CI_Lower": or_lower,
+        "CI_Upper": or_upper,
+        "logOR": linear_pred - ref_linpred,
+        "logOR_SE": se_pred
+    })
+
+    # Generate RCS plot with proper CI bands
+    fig, ax = plt.subplots(figsize=(9, 6.5))
+    ax.fill_between(x_range, or_lower, or_upper, alpha=0.2, color="#3498db", label="95% CI")
     ax.plot(x_range, or_values, color="#2c3e50", linewidth=2, label="OR estimate")
-    ax.axhline(y=1, color="red", linestyle="--", alpha=0.7)
-    ax.axvline(x=ref_val, color="gray", linestyle=":", alpha=0.5, label=f"Reference ({ref_val:.1f})")
-    # Add rug plot
-    ax.scatter(df[args.continuous], [1.01] * len(df), alpha=0.1, s=1, color="black")
-    ax.set_xlabel(args.continuous, fontsize=12)
-    ax.set_ylabel("OR (95% CI)", fontsize=12)
-    ax.set_title(f"RCS: {args.continuous} vs {args.outcome}\nk={n_knots} knots | Non-linearity P={lr_p:.4f}",
+    ax.axhline(y=1, color="red", linestyle="--", alpha=0.7, linewidth=0.9)
+    ax.axvline(x=ref_val, color="gray", linestyle=":", alpha=0.5, linewidth=0.9,
+               label=f"Reference ({ref_val:.1f})")
+    ax.scatter(df[args.continuous], [1.01] * len(df), alpha=0.08, s=2, color="gray", label="Data")
+    ax.set_xlabel(args.continuous, fontsize=12, fontweight="bold")
+    ax.set_ylabel("OR (95% CI)", fontsize=12, fontweight="bold")
+    ax.set_title(f"RCS: {args.continuous} vs {args.outcome}\n"
+                 f"k={n_knots} knots | Non-linearity P={lr_p:.4f}",
                  fontsize=13, fontweight="bold")
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=9, loc="upper right")
+    ax.grid(True, alpha=0.25, linestyle=":")
     plt.tight_layout()
 
-    out_file = f"rcs_{args.continuous}_{args.outcome}.png"
-    fig.savefig(out_file, dpi=300)
-    print(f"\n  RCS plot saved: {out_file}")
+    # Export: PNG + PDF + Excel
+    from export_utils import save_plot_dual, export_to_excel, timestamp
+    ts = timestamp()
+    base_name = f"rcs_{args.continuous}_{args.outcome}_{ts}"
+    save_plot_dual(fig, base_name, width=9, height=6.5)
+    export_to_excel(export_data, f"{base_name}_data.xlsx",
+                    sheet_name="RCS_Predictions",
+                    title=f"RCS Predictions: {args.continuous} vs {args.outcome}")
+    plt.close(fig)
+
+    print(f"\n  Reference value: {args.continuous} = {ref_val:.2f} (median)")
+    print(f"  Knot locations: {np.round(knot_locs, 2)}")
+    print(f"  Non-linearity LR test: P = {lr_p:.4f}")
 
     print("\n" + "=" * 55)
 
 
 if __name__ == "__main__":
-    # Need sm for the prediction part
     import statsmodels.api as sm
     main()

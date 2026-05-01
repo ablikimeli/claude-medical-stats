@@ -165,4 +165,10 @@ for (i in seq_len(nrow(results))) {
   cat(sprintf("    推荐方法: %s\n", test))
 }
 
+# ---- Export results ----
+suppressPackageStartupMessages(library(openxlsx))
+ts_val <- format(Sys.time(), "%Y%m%d_%H%M%S")
+write.xlsx(results, paste0("normality_", ts_val, ".xlsx"), overwrite = TRUE)
+cat(sprintf("\n  ✔ Excel: normality_%s.xlsx\n", ts_val))
+
 cat("\n═══════════════════════════════════════════\n")

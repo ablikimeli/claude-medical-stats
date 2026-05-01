@@ -114,6 +114,47 @@ if (params$type == "linear") {
                    ifelse(result$P < 0.05, "*", "")))
   print(result, row.names = FALSE)
 
+  # Export linear results
+  suppressPackageStartupMessages(library(openxlsx))
+  suppressPackageStartupMessages(library(flextable))
+  suppressPackageStartupMessages(library(officer))
+  ts_val <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  export_df <- data.frame(
+    Variable = result$变量, Beta = result$β, SE = result$SE,
+    CI_Lower = result$X95CI_L, CI_Upper = result$X95CI_U,
+    t = result$t, P_value = result$P, Significance = result$显著性,
+    stringsAsFactors = FALSE
+  )
+  write.xlsx(export_df, paste0("linear_", ts_val, ".xlsx"), overwrite = TRUE)
+  cat(sprintf("\n  ✔ Excel: linear_%s.xlsx\n", ts_val))
+  ft <- flextable(export_df) %>% theme_booktabs() %>% autofit() %>%
+    bold(part = "header") %>% align(align = "center", part = "all") %>%
+    font(fontname = "Times New Roman", part = "all") %>% fontsize(size = 9, part = "all")
+  doc <- read_docx() %>%
+    body_add_par("Linear Regression Results", style = "heading 1") %>%
+    body_add_flextable(ft)
+  print(doc, target = paste0("linear_", ts_val, ".docx"))
+  cat(sprintf("  ✔ Word: linear_%s.docx\n", ts_val))
+
+  # Forest plot
+  forest_data <- data.frame(
+    Variable = setdiff(result$变量, "(Intercept)"),
+    Effect = result$β[result$变量 != "(Intercept)"],
+    Lower = result$X95CI_L[result$变量 != "(Intercept)"],
+    Upper = result$X95CI_U[result$变量 != "(Intercept)"],
+    P_value = result$P[result$变量 != "(Intercept)"]
+  )
+  if (nrow(forest_data) > 0) {
+    source("scripts/forest_plot.R")
+    forest_plot(
+      forest_data,
+      effect_label = "beta (95% CI)",
+      reference = 0,
+      filename_prefix = paste0("forest_linear_", ts_val),
+      title = "Forest Plot: Linear Regression"
+    )
+  }
+
 } else if (params$type == "logistic") {
   df[[params$outcome]] <- as.factor(df[[params$outcome]])
   formula <- as.formula(paste(params$outcome, "~", paste(vars, collapse = " + ")))
@@ -138,6 +179,50 @@ if (params$type == "linear") {
                    ifelse(result$P < 0.05, "*", "")))
   print(result[, c("变量", "OR_CI", "P", "显著性")], row.names = FALSE)
 
+  # Export logistic results
+  suppressPackageStartupMessages(library(openxlsx))
+  suppressPackageStartupMessages(library(flextable))
+  suppressPackageStartupMessages(library(officer))
+  ts_val <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  export_df <- data.frame(
+    Variable = result$变量,
+    OR = sprintf("%.3f", result$OR),
+    CI_Lower = sprintf("%.3f", result$X95CI_L),
+    CI_Upper = sprintf("%.3f", result$X95CI_U),
+    P_value = sprintf("%.4f", result$P),
+    Significance = result$显著性,
+    stringsAsFactors = FALSE
+  )
+  write.xlsx(export_df, paste0("logistic_", ts_val, ".xlsx"), overwrite = TRUE)
+  cat(sprintf("\n  ✔ Excel: logistic_%s.xlsx\n", ts_val))
+  ft <- flextable(export_df) %>% theme_booktabs() %>% autofit() %>%
+    bold(part = "header") %>% align(align = "center", part = "all") %>%
+    font(fontname = "Times New Roman", part = "all") %>% fontsize(size = 9, part = "all")
+  doc <- read_docx() %>%
+    body_add_par("Logistic Regression Results", style = "heading 1") %>%
+    body_add_flextable(ft)
+  print(doc, target = paste0("logistic_", ts_val, ".docx"))
+  cat(sprintf("  ✔ Word: logistic_%s.docx\n", ts_val))
+
+  # Forest plot (omit intercept)
+  forest_data <- data.frame(
+    Variable = result$变量[result$变量 != "Intercept"],
+    Effect = result$OR[result$变量 != "Intercept"],
+    Lower = result$X95CI_L[result$变量 != "Intercept"],
+    Upper = result$X95CI_U[result$变量 != "Intercept"],
+    P_value = result$P[result$变量 != "Intercept"]
+  )
+  if (nrow(forest_data) > 0) {
+    source("scripts/forest_plot.R")
+    forest_plot(
+      forest_data,
+      effect_label = "OR (95% CI)",
+      reference = 1,
+      filename_prefix = paste0("forest_logistic_", ts_val),
+      title = "Forest Plot: Logistic Regression"
+    )
+  }
+
 } else if (params$type == "cox") {
   formula <- as.formula(paste0("Surv(", params$time, ", ", params$outcome, ") ~ ", paste(vars, collapse = " + ")))
   model <- coxph(formula, data = df)
@@ -160,6 +245,50 @@ if (params$type == "linear") {
                    ifelse(result$P < 0.01, "**",
                    ifelse(result$P < 0.05, "*", "")))
   print(result[, c("变量", "HR_CI", "P", "显著性")], row.names = FALSE)
+
+  # Export Cox results
+  suppressPackageStartupMessages(library(openxlsx))
+  suppressPackageStartupMessages(library(flextable))
+  suppressPackageStartupMessages(library(officer))
+  ts_val <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  export_df <- data.frame(
+    Variable = result$变量,
+    HR = sprintf("%.3f", result$HR),
+    CI_Lower = sprintf("%.3f", result$X95CI_L),
+    CI_Upper = sprintf("%.3f", result$X95CI_U),
+    P_value = sprintf("%.4f", result$P),
+    Significance = result$显著性,
+    stringsAsFactors = FALSE
+  )
+  write.xlsx(export_df, paste0("cox_", ts_val, ".xlsx"), overwrite = TRUE)
+  cat(sprintf("\n  ✔ Excel: cox_%s.xlsx\n", ts_val))
+  ft <- flextable(export_df) %>% theme_booktabs() %>% autofit() %>%
+    bold(part = "header") %>% align(align = "center", part = "all") %>%
+    font(fontname = "Times New Roman", part = "all") %>% fontsize(size = 9, part = "all")
+  doc <- read_docx() %>%
+    body_add_par("Cox Regression Results", style = "heading 1") %>%
+    body_add_flextable(ft)
+  print(doc, target = paste0("cox_", ts_val, ".docx"))
+  cat(sprintf("  ✔ Word: cox_%s.docx\n", ts_val))
+
+  # Forest plot
+  forest_data <- data.frame(
+    Variable = result$变量,
+    Effect = result$HR,
+    Lower = result$X95CI_L,
+    Upper = result$X95CI_U,
+    P_value = result$P
+  )
+  if (nrow(forest_data) > 0) {
+    source("scripts/forest_plot.R")
+    forest_plot(
+      forest_data,
+      effect_label = "HR (95% CI)",
+      reference = 1,
+      filename_prefix = paste0("forest_cox_", ts_val),
+      title = "Forest Plot: Cox Proportional Hazards"
+    )
+  }
 }
 
 cat("\n\n━━━━━━━━━━━━━━━━━━ 模型信息 ━━━━━━━━━━━━━━━━━━\n")
