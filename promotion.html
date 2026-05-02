@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>medical-statistics: 对话式临床数据分析工具</title>
+<style>
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.8;
+    color: #333;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+    font-size: 15px;
+  }
+  h1 { font-size: 24px; text-align: center; margin: 30px 0 6px; letter-spacing: 1px; }
+  h2 { font-size: 18px; margin: 32px 0 12px; padding-left: 12px; border-left: 4px solid #2166ac; }
+  h3 { font-size: 16px; margin: 22px 0 8px; color: #2166ac; }
+  p { margin: 10px 0; text-align: justify; }
+  .meta { text-align: center; color: #888; font-size: 13px; margin-bottom: 28px; }
+  code {
+    font-family: "SF Mono", "Consolas", monospace;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  pre {
+    background: #f8f8f8;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    font-size: 13px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th, td { border: 1px solid #ddd; padding: 7px 10px; text-align: left; }
+  th { background: #f0f4f8; font-weight: 600; }
+  .card {
+    background: #f8fbff;
+    border: 1px solid #d6e4f0;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 14px 0;
+  }
+  .card-title { font-weight: 600; color: #2166ac; margin-bottom: 6px; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 4px 0; }
+  .highlight-box {
+    background: #fff8e1;
+    border-left: 4px solid #f9a825;
+    padding: 10px 16px;
+    margin: 14px 0;
+    border-radius: 0 5px 5px 0;
+    font-size: 14px;
+  }
+  .info-box {
+    background: #e8f5e9;
+    border-left: 4px solid #43a047;
+    padding: 10px 16px;
+    margin: 14px 0;
+    border-radius: 0 5px 5px 0;
+    font-size: 14px;
+  }
+  hr { border: none; border-top: 1px solid #e8e8e8; margin: 30px 0; }
+  .footer { text-align: center; color: #999; font-size: 13px; margin: 40px 0 20px; }
+  .tag {
+    display: inline-block;
+    background: #e3f0fa;
+    color: #2166ac;
+    padding: 2px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    margin: 2px 3px;
+  }
+</style>
+</head>
+<body>
+
+<h1>medical-statistics</h1>
+<p style="text-align:center;color:#666;font-size:15px;">在 Claude Code 里对话式完成临床数据分析</p>
+<div class="meta">v2.0.0  .  2026-05  .  开源 . MIT License</div>
+
+<p>如果你做过临床研究，大概知道这套流程有多繁琐：数据清理、正态性检验、Table 1、单因素筛选、多因素建模、非线性探索、敏感性分析......每换一个变量就要改代码重新跑。更不用说审稿人要求补充 RCS、亚组分析或倾向评分时，又得回去改脚本。</p>
+
+<p>这个 Skill 在 Claude Code 里以对话方式完成上面这一整套流程，每个环节都有统计审稿人级别的质控，结果自动导出为可用的表格和图形。</p>
+
+<div class="info-box">
+  <strong>核心理念：</strong>对话式分析 + 自动质控。不用记命令，不用来回切换软件，像跟统计学家聊天一样完成分析。
+</div>
+
+<h2>完整分析流程</h2>
+
+<div class="card">
+  <div class="card-title">Pipeline 一览</div>
+  <p><strong>数据导入</strong> &rarr; <strong>质控与缺失值评估</strong> &rarr; <strong>正态性检验</strong> &rarr; <strong>方法推荐（交互确认）</strong> &rarr; <strong>Table 1 单因素分析</strong> &rarr; <strong>多因素回归</strong> &rarr; <strong>RCS 非线性分析</strong> &rarr; <strong>敏感性分析</strong> &rarr; <strong>结果汇总与导出</strong></p>
+</div>
+
+<p>每个步骤都会先推荐方法并说明理由，等你确认后再执行。如果坚持自选方法，结果中会标注「用户指定」。</p>
+
+<h2>支持的分析功能</h2>
+
+<table>
+  <tr><th>类别</th><th>功能</th><th>导出格式</th></tr>
+  <tr>
+    <td>数据质控</td>
+    <td>缺失值评估、MCAR/MAR/MNAR 判断、异常值检测（IQR法）、变量分布概览</td>
+    <td>TXT</td>
+  </tr>
+  <tr>
+    <td>缺失数据处理</td>
+    <td>多重插补（IterativeImputer）、缺失模式分析、完整案例 vs 插补比较</td>
+    <td>CSV + Excel</td>
+  </tr>
+  <tr>
+    <td>正态性检验</td>
+    <td>Shapiro-Wilk 检验 + 直方图 + Q-Q 图 + 偏度/峰度</td>
+    <td>PNG + PDF + CSV + Excel</td>
+  </tr>
+  <tr>
+    <td>Table 1 / 单因素分析</td>
+    <td>基线特征表（含检验统计量 + 效应量 + P 值）；t 检验 / Mann-Whitney U / x84 检验 / Fisher / ANOVA / Kruskal-Wallis</td>
+    <td>CSV + Excel + Word</td>
+  </tr>
+  <tr>
+    <td>Logistic 回归</td>
+    <td>二分类结局、OR(95%CI)、Wald 检验、森林图、ROC 曲线、Hosmer-Lemeshow 检验、VIF</td>
+    <td>CSV + Excel + Word + PNG + PDF</td>
+  </tr>
+  <tr>
+    <td>线性回归</td>
+    <td>连续结局、Beta(95%CI)、残差诊断（Q-Q 图、等方差性、Cook's D）</td>
+    <td>CSV + Excel + Word + PNG + PDF</td>
+  </tr>
+  <tr>
+    <td>Cox 回归</td>
+    <td>生存结局、HR(95%CI)、比例风险假设检验（Schoenfeld 残差）、调整生存曲线</td>
+    <td>CSV + Excel + Word + PNG + PDF</td>
+  </tr>
+  <tr>
+    <td>Kaplan-Meier 生存分析</td>
+    <td>KM 曲线、log-rank 检验、风险表、中位生存时间</td>
+    <td>PNG + PDF + CSV</td>
+  </tr>
+  <tr>
+    <td>有序 / Poisson 回归</td>
+    <td>有序多分类结局（比例优势假设检验）、计数结局（IRR）</td>
+    <td>CSV + Excel + Word</td>
+  </tr>
+  <tr>
+    <td>RCS 非线性分析</td>
+    <td>限制性立方样条（3-5 节点可调）、非线性 LR 检验、各百分位 OR/HR/Beta 预测、阈值分析</td>
+    <td>PNG + PDF + CSV + Excel</td>
+  </tr>
+  <tr>
+    <td>倾向评分分析</td>
+    <td>PSM（近邻匹配+卡钳）、IPTW 加权、协变量平衡检验（SMD）、Love Plot</td>
+    <td>CSV + Excel + PNG + PDF</td>
+  </tr>
+  <tr>
+    <td>中介分析</td>
+    <td>因果中介效应分解、ACME、ADE、中介比例、Bootstrap CI</td>
+    <td>CSV + Excel + Word</td>
+  </tr>
+  <tr>
+    <td>敏感性分析</td>
+    <td>E-value（未测量混杂稳健性）、亚组分析 + 交互作用检验、多重插补敏感性</td>
+    <td>CSV + Excel + PNG + PDF</td>
+  </tr>
+  <tr>
+    <td>诊断试验</td>
+    <td>ROC/AUC、敏感度/特异度/PPV/NPV、最优截断值（Youden 指数）、校准曲线</td>
+    <td>CSV + Excel + PNG + PDF</td>
+  </tr>
+  <tr>
+    <td>样本量计算</td>
+    <td>t 检验 / 比例检验 / 生存分析的功效和样本量</td>
+    <td>TXT</td>
+  </tr>
+</table>
+
+<h2>环境依赖</h2>
+
+<table>
+  <tr><th>引擎</th><th>路径</th><th>状态</th></tr>
+  <tr><td>Python 3.14</td><td><code>D:\software\Python314\python.exe</code></td><td>可用</td></tr>
+  <tr><td>R 4.5.2</td><td><code>D:\software\R-4.5.2\bin\Rscript.exe</code></td><td>备选（部分环境待修复）</td></tr>
+</table>
+
+<p><strong>Python 包：</strong>pandas, numpy, scipy, statsmodels, lifelines, scikit-learn, matplotlib, openpyxl, python-docx, seaborn, patsy</p>
+<p>所有分析默认使用 Python 引擎执行。</p>
+
+<h2>导出文件清单</h2>
+
+<table>
+  <tr><th>分析阶段</th><th>导出文件</th><th>格式</th></tr>
+  <tr><td>正态性检验</td><td>normality_{timestamp}.csv / .xlsx + normality_{var}.png / .pdf</td><td>CSV+Excel+PNG+PDF</td></tr>
+  <tr><td>Table 1</td><td>table1_{timestamp}.csv / .xlsx / .docx</td><td>CSV+Excel+Word</td></tr>
+  <tr><td>多因素回归</td><td>{model}_{timestamp}.csv/.xlsx/.docx + forest_{type}_{timestamp}.png/.pdf</td><td>CSV+Excel+Word+PNG+PDF</td></tr>
+  <tr><td>RCS 分析</td><td>rcs_{var}_{timestamp}.png/.pdf + rcs_{var}_data_{timestamp}.xlsx</td><td>PNG+PDF+Excel</td></tr>
+  <tr><td>生存分析</td><td>km_curve_{timestamp}.png/.pdf + cox_{timestamp}.csv/.xlsx/.docx</td><td>PNG+PDF+CSV+Excel+Word</td></tr>
+  <tr><td>PSM</td><td>psm_{timestamp}.csv/.xlsx + love_plot_{timestamp}.png/.pdf</td><td>CSV+Excel+PNG+PDF</td></tr>
+  <tr><td>完整报告</td><td>analysis_report_{timestamp}.txt + MANIFEST_{timestamp}.txt</td><td>TXT</td></tr>
+</table>
+
+<h2>为什么值得一试</h2>
+
+<ul>
+  <li><strong>对话式分析</strong>：不用写代码，不用记命令，自然语言完成分析</li>
+  <li><strong>自动质控</strong>：正态性检验 &rarr; 方法推荐 &rarr; 效应量报告 &rarr; 模型诊断，每一步都有检查</li>
+  <li><strong>多格式导出</strong>：表格自动导出 CSV/Excel/Word，图形自动导出 PNG/PDF</li>
+  <li><strong>交互确认</strong>：统计方法先推荐、解释理由，你确认后再执行</li>
+  <li><strong>方法全面</strong>：支持回归、生存、RCS、PSM、中介、敏感性分析等全流程</li>
+  <li><strong>可复现</strong>：所有分析代码可追溯</li>
+</ul>
+
+<div class="highlight-box">
+  <strong>提醒：</strong>这个工具能帮你完成规范的统计分析，但不能替代对方法的真正理解。最终的方法选择和结果解释仍需要你结合临床背景自行判断。
+</div>
+
+<h2>安装</h2>
+
+<pre><code># 将 skill 安装到项目目录
+git clone &lt;repo-url&gt; .claude/skills/medical-statistics
+
+# 在 Claude Code 中启动
+/medical-statistics</code></pre>
+
+<p>项目地址：<a href="https://github.com/ablikimeli/claude-medical-stats">github.com/ablikimeli/claude-medical-stats</a></p>
+
+<hr>
+
+<div class="footer">
+  <p>MIT License . 欢迎反馈和贡献</p>
+</div>
+
+</body>
+</html>
