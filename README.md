@@ -23,7 +23,7 @@ This skill transforms Claude Code into a **rigorous biomedical statistician** ca
 | Descriptive | Normality tests, Table 1 (baseline characteristics), standardized mean differences |
 | Univariable | t-test, Wilcoxon, ANOVA, Kruskal-Wallis, χ², Fisher's exact, McNemar |
 | Multivariable | Linear / Logistic / Cox / Ordinal / Multinomial / Poisson regression |
-| **Visualization** | **Forest plot (OR/HR/β+95%CI+P值), RCS平滑曲线, KM曲线, Love Plot** |
+| **Visualization** | **Forest plot (OR/HR/β+95%CI+P-value), RCS curve, KM curve, Love Plot** |
 | Non-linear | Restricted Cubic Splines (RCS), smooth curves, threshold effect analysis |
 | Survival | Kaplan-Meier, Cox PH, competing risks, landmark analysis, time-dependent ROC |
 | Advanced | Propensity score (PSM, IPTW), mediation analysis, DAG-based causal inference |
