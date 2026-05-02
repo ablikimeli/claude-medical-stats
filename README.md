@@ -14,7 +14,7 @@ This skill transforms Claude Code into a **rigorous biomedical statistician** ca
 - Journal-grade statistical methodology selection and justification
 - Reviewer-aware reporting compliant with **STROBE**, **CONSORT**, **STARD**, and **TRIPOD** guidelines
 - Interactive method selection with statistical peer-review feedback
-- **R and Python bilingual** — choose your preferred language
+- **Python (primary) with R as backup** — Python engine is default for all analyses
 
 ## Core Capabilities
 
@@ -23,7 +23,7 @@ This skill transforms Claude Code into a **rigorous biomedical statistician** ca
 | Descriptive | Normality tests, Table 1 (baseline characteristics), standardized mean differences |
 | Univariable | t-test, Wilcoxon, ANOVA, Kruskal-Wallis, χ², Fisher's exact, McNemar |
 | Multivariable | Linear / Logistic / Cox / Ordinal / Multinomial / Poisson regression |
-| **Visualization** | **Forest plot (`forestplot`包, OR/HR/β+95%CI+P值), RCS平滑曲线 (`rcssci`包)** |
+| **Visualization** | **Forest plot (OR/HR/β+95%CI+P值), RCS平滑曲线, KM曲线, Love Plot** |
 | Non-linear | Restricted Cubic Splines (RCS), smooth curves, threshold effect analysis |
 | Survival | Kaplan-Meier, Cox PH, competing risks, landmark analysis, time-dependent ROC |
 | Advanced | Propensity score (PSM, IPTW), mediation analysis, DAG-based causal inference |
@@ -52,14 +52,14 @@ Or simply describe your data and analysis needs — the skill auto-triggers on k
 
 ## Dependencies
 
-**Both R and Python are supported.** The skill asks which language you prefer if not specified.
+**Python is the primary engine** (fully tested and stable). R is available as a backup but some packages have known issues.
 
-- **R** ≥ 4.0 (default): `tableone`, `rms`, `Hmisc`, `ggplot2`, `dplyr`, `survival`, `mice`, `MatchIt`, `mediation`,
-  `openxlsx`, `officer`, `flextable`
-  - `D:\software\R-4.5.2\bin\Rscript.exe`
-- **Python**: `pandas`, `numpy`, `scipy`, `statsmodels`, `lifelines`, `scikit-learn`, `matplotlib`, `seaborn`,
-  `pingouin`, `patsy`, `openpyxl`, `python-docx`
+- **Python** (default): `pandas`, `numpy`, `scipy`, `statsmodels`, `lifelines`, `scikit-learn`, `matplotlib`, `seaborn`,
+  `patsy`, `openpyxl`, `python-docx`
   - `D:\software\Python314\python.exe`
+- **R** (backup — some environments may segfault with `dplyr`): `tableone`, `rms`, `Hmisc`, `ggplot2`, `survival`,
+  `MatchIt`, `openxlsx`, `officer`, `flextable`
+  - `D:\software\R-4.5.2\bin\Rscript.exe`
 
 ## Export Features
 
@@ -67,9 +67,10 @@ All analysis outputs are available in publication-ready formats:
 
 | Format | Tables | Figures |
 |:-------|:-------|:--------|
+| **CSV** (.csv) | Raw data tables — Table 1, regression, RCS predictions | — |
 | **Excel** (.xlsx) | Table 1, regression results, RCS predictions | — |
 | **Word** (.docx) | Formatted tables ready for manuscript | — |
-| **PNG** (.png, 300 DPI) | — | RCS plots, diagnostic plots |
+| **PNG** (.png, 300 DPI) | — | Forest / RCS / ROC / KM / Love Plot |
 | **PDF** (.pdf) | — | Vector figures for publication |
 
 ## File Structure
@@ -135,7 +136,7 @@ This skill enforces key elements from:
 - **符合 STROBE/CONSORT/STARD/TRIPOD 报告规范**
 - **交互式方法选择**：推荐方法 → 用户确认 → 自定义方法评估
 - **统计审稿检查清单**：从审稿人角度检查分析质量
-- **R 和 Python 双语支持**：未指定时自动询问用户偏好
+- **Python 主引擎 + R 备选**：默认使用 Python，R 作为备选
 
 ### 支持的方法
 
@@ -156,9 +157,10 @@ This skill enforces key elements from:
 
 | 输出类型 | 格式 | 说明 |
 |:---------|:-----|:------|
-| 统计表格 | **Excel** (.xlsx) | Table 1、回归结果、RCS预测数据 |
+| 统计数据 | **CSV** (.csv) | Table 1、回归结果、RCS 预测原始数据 |
+| 统计表格 | **Excel** (.xlsx) | Table 1、回归结果、RCS 预测数据 |
 | 统计表格 | **Word** (.docx) | 格式化表格，可直接粘贴到论文 |
-| 统计图形 | **PNG** (.png, 300 DPI) | 适合插入文档和PPT |
+| 统计图形 | **PNG** (.png, 300 DPI) | 森林图/RCS/ROC/KM/Love Plot |
 | 统计图形 | **PDF** (.pdf) | 矢量格式，适合投稿和印刷 |
 
 ### 安装
@@ -169,9 +171,9 @@ git clone https://github.com/ablikimeli/claude-medical-stats.git ~/.claude/skill
 
 ### 语言选择
 
-- 明确说 **"use R"** 或 **"用 R"** → 走 R 脚本
-- 明确说 **"use Python"** 或 **"用 Python"** → 走 Python 脚本
-- **未指定** → 自动询问：*"Would you like to use R or Python?"*
+- **默认** → Python 引擎执行所有分析
+- 明确指定 **"用 Python"** → 同上
+- 明确指定 **"用 R"** → 尝试 R 引擎（部分依赖可能不可用，失败则回退到 Python）
 
 ### 文件结构
 

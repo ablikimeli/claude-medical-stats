@@ -105,8 +105,10 @@ Model Performance:
 [Summary tables and figures]
 
 ## Exported Files
+- Table 1 (CSV): `table1_{timestamp}.csv`
 - Table 1 (Excel): `table1_{timestamp}.xlsx`
 - Table 1 (Word): `table1_{timestamp}.docx`
+- Multivariable results (CSV): `{model_type}_{timestamp}.csv`
 - Multivariable results (Excel): `{model_type}_{timestamp}.xlsx`
 - Multivariable results (Word): `{model_type}_{timestamp}.docx`
 - Forest plot (PNG): `forest_{model_type}_{timestamp}.png`
@@ -114,7 +116,11 @@ Model Performance:
 - RCS plot (PNG): `rcs_{variable}_{timestamp}.png`
 - RCS plot (PDF): `rcs_{variable}_{timestamp}.pdf`
 - RCS prediction data (Excel): `rcs_{variable}_data_{timestamp}.xlsx`
-- Normality results (Excel): `normality_{timestamp}.xlsx`
+- Normality results (CSV): `normality_{timestamp}.csv`
+- Normality plots (PNG): `normality_{variable}_{timestamp}.png`
+- Normality plots (PDF): `normality_{variable}_{timestamp}.pdf`
+- ROC curve (PNG): `roc_curve_{timestamp}.png`
+- ROC curve (PDF): `roc_curve_{timestamp}.pdf`
 
 ## Journal Reviewer Assessment
 {reviewer_comments}
@@ -190,12 +196,13 @@ Options:
   E-value Sensitivity Analysis
 ══════════════════════════════════════════════════
 
-Observed Effect: {OR/HR} = {value} (95% CI: {ci_low}–{ci_high})
+Observed Effect: {OR/HR/β} = {value} (95% CI: {ci_low}–{ci_high})
 
 E-value for point estimate: {e_value_est}
   Interpretation: An unmeasured confounder would need a risk ratio
   of ≥ {e_value_est} with BOTH exposure and outcome to explain away
-  the observed effect estimate.
+  the observed effect estimate{for_linear: ; for linear regression, the E-value
+  is expressed on the risk ratio scale and requires converting β to an approximate RR}.
 
 E-value for CI limit: {e_value_ci}
   Interpretation: An unmeasured confounder would need a risk ratio
