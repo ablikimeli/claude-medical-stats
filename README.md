@@ -2,7 +2,7 @@
 
 > A comprehensive biostatistics companion for Claude Code — reviewed from the perspective of **The Lancet, BMJ, NEJM, and JAMA** statistical reviewers.
 
-[中文版](#-中文版)
+[中文版](#-中文版) · [日本語](#-日本語) · [한국어](#-한국어) · [Español](#-español)
 
 ---
 
@@ -260,7 +260,7 @@ Claude Code 上で対話的に臨床データ分析を実行。データ取込�
 
 ---
 
-## 한국어
+## 🌏 한국어
 
 # 🏥 의학 통계 분석 Claude Code Skill
 
@@ -293,7 +293,7 @@ Claude Code에서 대화식으로 임상 데이터 분석을 수행합니다. �
 
 ---
 
-## Español
+## 🌏 Español
 
 # 🏥 Skill de Estadística Médica para Claude Code
 
