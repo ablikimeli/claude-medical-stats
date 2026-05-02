@@ -14,7 +14,7 @@ This skill transforms Claude Code into a **rigorous biomedical statistician** ca
 - Journal-grade statistical methodology selection and justification
 - Reviewer-aware reporting compliant with **STROBE**, **CONSORT**, **STARD**, and **TRIPOD** guidelines
 - Interactive method selection with statistical peer-review feedback
-- **Python (primary) with R as backup** — Python engine is default for all analyses
+- **Python (primary) with R as backup** — user is asked to choose if not specified
 
 ## Core Capabilities
 
@@ -136,7 +136,7 @@ This skill enforces key elements from:
 - **符合 STROBE/CONSORT/STARD/TRIPOD 报告规范**
 - **交互式方法选择**：推荐方法 → 用户确认 → 自定义方法评估
 - **统计审稿检查清单**：从审稿人角度检查分析质量
-- **Python 主引擎 + R 备选**：默认使用 Python，R 作为备选
+- **Python 主引擎 + R 备选**：用户未指定时询问选择
 
 ### 支持的方法
 
@@ -171,9 +171,9 @@ git clone https://github.com/ablikimeli/claude-medical-stats.git ~/.claude/skill
 
 ### 语言选择
 
-- **默认** → Python 引擎执行所有分析
-- 明确指定 **"用 Python"** → 同上
-- 明确指定 **"用 R"** → 尝试 R 引擎（部分依赖可能不可用，失败则回退到 Python）
+- **未指定** → 必须询问用户选择 Python 还是 R
+- 用户指定 **"用 Python"** → 使用 Python 引擎
+- 用户指定 **"用 R"** → 尝试 R 引擎（部分依赖可能不可用，失败则回退到 Python）
 
 ### 文件结构
 
