@@ -225,4 +225,105 @@ graph TD
 
 ---
 
+---
+
+## 🌏 日本語
+
+# 🏥 医学統計分析 Claude Code Skill
+
+> *The Lancet・BMJ・NEJM・JAMA* の統計レビュアー視点で作られた医用統計解析ツール。
+
+### 概要
+
+Claude Code 上で対話的に臨床データ分析を実行。データ取込から品質管理、正規性検定、Table 1、単変量・多変量解析、RCS非線形分析、傾向スコア、感度分析まで、一貫したパイプラインを提供。
+
+### 使用方法
+
+```
+/medical-statistics
+```
+
+または自然言語で依頼：「この臨床データを分析して」「Table 1 を出力」「多変量解析をお願い」
+
+### 言語選択
+
+- **指定なし** → 起動時に Python か R かを確認
+- **Python** を指定 → Python エンジンで実行
+- **R** を指定 → R エンジンを試行（一部パッケージに既知の問題あり、失敗時は Python にフォールバック）
+
+### 依存環境
+
+- **Python**: `D:\software\Python314\python.exe`
+- **R**: `D:\software\R-4.5.2\bin\Rscript.exe`
+
+詳細な機能一覧と出力形式については[英語版](#-claude-medical-statistics-skill)を参照。
+
+---
+
+## 한국어
+
+# 🏥 의학 통계 분석 Claude Code Skill
+
+> *Lancet・BMJ・NEJM・JAMA* 통계 리뷰어 관점에서 제작된 의학 통계 분석 도구입니다.
+
+### 개요
+
+Claude Code에서 대화식으로 임상 데이터 분석을 수행합니다. 데이터 불러오기, 품질 관리, 정규성 검정, Table 1, 단변량/다변량 분석, RCS 비선형 분석, 성향 점수 분석, 민감도 분석까지 일관된 파이프라인을 제공합니다.
+
+### 사용 방법
+
+```
+/medical-statistics
+```
+
+또는 자연어로 요청: "이 임상 데이터를 분석해 주세요", "Table 1을 출력해 주세요"
+
+### 언어 선택
+
+- **지정 없음** → 시작 시 Python 또는 R 선택 확인
+- **Python 지정** → Python 엔진으로 실행
+- **R 지정** → R 엔진 시도 (일부 패키지에 문제 있을 수 있음, 실패 시 Python으로 대체)
+
+### 의존 환경
+
+- **Python**: `D:\software\Python314\python.exe`
+- **R**: `D:\software\R-4.5.2\bin\Rscript.exe`
+
+자세한 기능 목록과 출력 형식은 [영어版](#-claude-medical-statistics-skill)을 참조하세요.
+
+---
+
+## Español
+
+# 🏥 Skill de Estadística Médica para Claude Code
+
+> Una herramienta integral de bioestadística creada desde la perspectiva de revisores estadísticos de *The Lancet, BMJ, NEJM y JAMA*.
+
+### Descripción
+
+Realiza análisis de datos clínicos de forma interactiva en Claude Code. El pipeline completo incluye: importación de datos, control de calidad, pruebas de normalidad, Tabla 1, análisis univariable y multivariable, splines cúbicos restringidos (RCS), puntuación de propensión, análisis de sensibilidad, y más.
+
+### Uso
+
+```
+/medical-statistics
+```
+
+O simplemente describe tu necesidad: "Analiza estos datos clínicos", "Genera la Tabla 1", "Haz un análisis multivariable"
+
+### Selección de lenguaje
+
+- **No especificado** → Pregunta al inicio si usar Python o R
+- **Python** → Ejecuta con el motor de Python
+- **R** → Intenta con R (algunos paquetes pueden tener problemas; fallback a Python si falla)
+
+### Dependencias
+
+- **Python**: `D:\software\Python314\python.exe`
+- **R**: `D:\software\R-4.5.2\bin\Rscript.exe`
+
+Para la lista completa de capacidades y formatos de exportación, consulta la [versión en inglés](#-claude-medical-statistics-skill).
+
+---
+
 **Author**: [ablikimeli](https://github.com/ablikimeli) | **License**: MIT
