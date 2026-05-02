@@ -14,7 +14,7 @@ This skill transforms Claude Code into a **rigorous biomedical statistician** ca
 - Journal-grade statistical methodology selection and justification
 - Reviewer-aware reporting compliant with **STROBE**, **CONSORT**, **STARD**, and **TRIPOD** guidelines
 - Interactive method selection with statistical peer-review feedback
-- **Python (primary) with R as backup** — user is asked to choose if not specified
+- **Python and R bilingual** — user chooses their preferred language at start; analysis waits for confirmation
 
 ## Core Capabilities
 
@@ -52,14 +52,14 @@ Or simply describe your data and analysis needs — the skill auto-triggers on k
 
 ## Dependencies
 
-**Python is the primary engine** (fully tested and stable). R is available as a backup but some packages have known issues.
+**Python and R are both available.** The skill asks which engine to use at the start — analysis only proceeds after user confirmation.
 
-- **Python** (default): `pandas`, `numpy`, `scipy`, `statsmodels`, `lifelines`, `scikit-learn`, `matplotlib`, `seaborn`,
+- **Python**: `pandas`, `numpy`, `scipy`, `statsmodels`, `lifelines`, `scikit-learn`, `matplotlib`, `seaborn`,
   `patsy`, `openpyxl`, `python-docx`
   - `D:\software\Python314\python.exe`
-- **R** (backup — some environments may segfault with `dplyr`): `tableone`, `rms`, `Hmisc`, `ggplot2`, `survival`,
-  `MatchIt`, `openxlsx`, `officer`, `flextable`
+- **R**: `tableone`, `rms`, `Hmisc`, `ggplot2`, `survival`, `MatchIt`, `openxlsx`, `officer`, `flextable`
   - `D:\software\R-4.5.2\bin\Rscript.exe`
+  - Note: some R packages (e.g. `dplyr`) may have environment-specific issues; falls back to Python if execution fails
 
 ## Export Features
 
@@ -136,7 +136,7 @@ This skill enforces key elements from:
 - **符合 STROBE/CONSORT/STARD/TRIPOD 报告规范**
 - **交互式方法选择**：推荐方法 → 用户确认 → 自定义方法评估
 - **统计审稿检查清单**：从审稿人角度检查分析质量
-- **Python 主引擎 + R 备选**：用户未指定时询问选择
+- **Python / R 双语支持**：启动时询问用户选择，确认后再执行分析
 
 ### 支持的方法
 

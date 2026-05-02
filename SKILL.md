@@ -459,7 +459,7 @@ Python: D:\software\Python314\python.exe
         matplotlib, openpyxl, python-docx, seaborn
 ```
 
-### R（备选，环境待修复）
+### R（部分环境有已知问题）
 ```
 Rscript: D:\software\R-4.5.2\bin\Rscript.exe
 ```
